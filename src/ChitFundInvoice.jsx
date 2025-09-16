@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import logo from './Logo.png'
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 // 📌 ChitFundInvoice Component — Extended Version
 // ---------------------------------------------------------------------
 // This is a ReactJS component built using functional components + hooks.
@@ -30,8 +32,11 @@ export default function ChitFundInvoice() {
     notes: "Nil",
     signature :"Ramesh.T"
   });
+  
+const signatureRef = useRef(null);
 
-  const signatureRef = useRef(null);
+const [loading,setLoading] = useState(false);
+const invoiceRef = useRef(null);
 
   // Generic input handler
   function handleChange(e) {
@@ -64,54 +69,57 @@ function getPlanLabel(val) {
   return plans[val] || "-";
 }
 
-  // Print invoice
-  function handlePrint() {
-    window.print();
+ // ✅ Generate PDF
+  async function generatePDF() {
+    setLoading(true);
+    const input = invoiceRef.current;
+
+    const canvas = await html2canvas(input, { scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    setLoading(false);
+    return pdf;
   }
 
-  // Generate plain text invoice for sharing
-  function buildPlainTextInvoice() {
-    return `Chit Fund Receipt\n\nName: ${form.customerName || "-"}\nDate: ${form.date}\nChit No: ${form.chitNumber || "-"}\nPlan: ${form.planName || "-"} (Amount: ${formatCurrency(form.planAmount)})\nCash Received: ${formatCurrency(form.cashReceived)}\nPayment Type: ${form.paymentType}\nUser: ${form.userType}\nCollection Agent: ${form.agentName || "-"}\nNotes: ${form.notes || "-"}\n\n-- Generated via ChitFund Invoice App`;
+
+  //download PDF
+async function handleDownloadPDF() {
+  const pdf = await generatePDF();
+    pdf.save(`chitfund_invoice_${form.customerName || "customer"}.pdf`);
   }
+
+
 
   // Share via WhatsApp
   async function handleShareWhatsApp() {
-    const text = buildPlainTextInvoice();
-    const encoded = encodeURIComponent(text);
-    const waUrl = `https://wa.me/?text=${encoded}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "Chit Fund Receipt", text });
-        return;
-      }
-    } catch (err) {}
-    window.open(waUrl, "_blank");
-  }
+  const pdf = await generatePDF();
+  const pdfBlob = pdf.output("blob");
+  const pdfFile = new File([pdfBlob], "ChitFund_Invoice.pdf", {
+    type: "application/pdf",
+  });
 
-  // Share using Web Share API or fallback copy
-  async function handleShareNative() {
-    const text = buildPlainTextInvoice();
+  if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
     try {
-      if (navigator.share) {
-        await navigator.share({ title: "Chit Fund Receipt", text });
-        return;
-      } else {
-        await navigator.clipboard.writeText(text);
-        alert("Receipt copied to clipboard — paste it into WhatsApp or anywhere.");
-      }
+      await navigator.share({
+        title: "Chit Fund Invoice",
+        text: "Here is your receipt from TRS Chit Fund",
+        files: [pdfFile],
+      });
     } catch (err) {
-      await navigator.clipboard.writeText(text);
-      alert("Receipt copied to clipboard — paste it into WhatsApp or anywhere.");
+      console.error("Share failed:", err);
     }
+  } else {
+    // ✅ WhatsApp Fallback
+    const url = URL.createObjectURL(pdfBlob);
+    window.open(`https://wa.me/?text=Here is your Chit Fund Invoice: ${url}`);
   }
-
-  // Copy invoice text
-  function handleCopy() {
-    const text = buildPlainTextInvoice();
-    navigator.clipboard.writeText(text).then(() => {
-      alert("Copied receipt text to clipboard");
-    });
-  }
+}
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8 flex flex-col items-center">
@@ -200,31 +208,19 @@ function getPlanLabel(val) {
 
               {/* Actions */}
               <div className="flex gap-2 mt-2">
-                <button type="button" onClick={handlePrint} className="btn-primary flex-1">Print / Save PDF</button>
-                <button type="button" onClick={handleShareWhatsApp} className="btn-outline">Share via WhatsApp</button>
-                <button type="button" onClick={handleShareNative} className="btn-outline">Share</button>
+                <button type="button" onClick={handleDownloadPDF} className="btn-primary flex-1">{loading ? "Generating..." : "Download PDF"}
+</button>
+                <button type="button" onClick={handleShareWhatsApp} className="btn-outline">{loading ? "Preparing..." : "Share via WhatsApp"}
+</button>
               </div>
 
-              <div className="flex gap-2 mt-2">
-                <button type="button" onClick={handleCopy} className="btn-ghost flex-1">Copy Invoice Text</button>
-                <button type="button" onClick={() => { setForm({
-                  customerName: "",
-                  date: new Date().toISOString().slice(0, 10),
-                  chitNumber: "",
-                  planName: "",
-                  planAmount: "",
-                  cashReceived: "",
-                  paymentType: "",
-                  agentName: "",
-                  userType: "",
-                  notes: "",
-                }); }} className="btn-ghost">Reset</button>
-              </div>
+            
             </form>
           </div>
 
           {/* Invoice Preview */}
-          <div className="border-t p-4 bg-gray-50 print:bg-white">
+          <div ref={invoiceRef} className="bg-white p-4 rounded-lg shadow-sm print:shadow-none">
+  <div className="border-t p-4 bg-gray-50 print:bg-white">
             <div className="bg-white p-4 rounded-lg shadow-sm print:shadow-none">
               {/* Company Header in Invoice */}
               {/* <div className="text-center mb-4">
@@ -310,6 +306,8 @@ function getPlanLabel(val) {
           </div>
         </div>
 
+</div>
+        
         {/* Tips */}
         {/* <div className="mt-4 text-sm text-gray-600">
           <div className="mb-1">Tips: Use the Print button on mobile to save as PDF or directly print via connected printer. Use WhatsApp share to send the invoice text quickly.</div>
