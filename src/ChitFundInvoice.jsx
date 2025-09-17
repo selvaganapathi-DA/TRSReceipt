@@ -95,7 +95,7 @@ async function generatePDF() {
   const scale = Math.max(2, window.devicePixelRatio || 1);
 
   const canvas = await html2canvas(input, {
-    scale,
+    scale:3,
     useCORS: true,
     scrollX: 0,
     scrollY: -window.scrollY, // capture visible layout correctly
@@ -309,7 +309,7 @@ async function handleShareWhatsApp() {
                 <img src={logo} alt="Company Logo" className="h-21 w-20 mx-auto mb-0" />
                 <h2 className="font-bold text-lg"><bold>TRS Chit Fund</bold></h2>
                 <p className="text-xs text-gray-600">2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</p>
-                <p className="text-xs text-gray-600"><strong>Contact: Ramesh- +91-9444545907 & Siva - +91-7200120078</strong> </p>
+                <p className="text-xs text-gray-600"><strong>Ramesh-9444545907 & Siva-7200120078</strong> </p>
               </div>
 
 <div className="flex items-start justify-between mb-4">
@@ -472,10 +472,24 @@ async function handleShareWhatsApp() {
  width: 210mm;
     height: 297mm;
    margin: 0;
-    padding: 0;
+    padding: 20;
     border: none;
     box-shadow: none;
-  } , #invoice-preview * { padding-left: 5%;
+  } , #invoice-preview {
+  font-family: 'Arial', 'Helvetica', sans-serif;
+  line-height: 1.5;
+}
+#invoice-preview h2 {
+  font-size: 20px;
+  font-weight: 700;
+}
+#invoice-preview .text-sm {
+  font-size: 14px;
+}
+#invoice-preview .text-xs {
+  font-size: 12px;
+}
+, #invoice-preview * { padding-left: 5%;
   padding-right: 5%; visibility: visible; }
           form, .btn-primary, .btn-outline, .btn-ghost { display:none !important; }
           @page { size: A4; margin: 12mm; }
