@@ -70,22 +70,51 @@ function getPlanLabel(val) {
 }
 
  // ✅ Generate PDF
-  async function generatePDF() {
-    setLoading(true);
-    const input = invoiceRef.current;
+async function generatePDF() {
+  setLoading(true);
+  const input = invoiceRef.current;
 
-    const canvas = await html2canvas(input, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
+  const canvas = await html2canvas(input, {
+    scale: 2,
+    useCORS: true,
+    scrollX: 0,
+    scrollY: 0,
+    windowWidth: input.scrollWidth,
+    windowHeight: input.scrollHeight,
+  });
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+  const imgData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF("p", "mm", "a4");
 
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    setLoading(false);
-    return pdf;
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
+
+  const imgProps = pdf.getImageProperties(imgData);
+  const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+  // add with margins (10mm each side)
+  const margin = 10; 
+  const usableWidth = pdfWidth - margin * 2;
+  const usableHeight = (imgProps.height * usableWidth) / imgProps.width;
+
+  if (usableHeight > pdfHeight - margin * 2) {
+    // multipage handling
+    let position = margin;
+    let heightLeft = usableHeight;
+
+    while (heightLeft > 0) {
+      pdf.addImage(imgData, "PNG", margin, position, usableWidth, usableHeight);
+      heightLeft -= (pdfHeight - margin * 2);
+      position -= (pdfHeight - margin * 2);
+      if (heightLeft > 0) pdf.addPage();
+    }
+  } else {
+    pdf.addImage(imgData, "PNG", margin, margin, usableWidth, usableHeight);
   }
+
+  setLoading(false);
+  return pdf;
+}
 
 
   //download PDF
@@ -220,12 +249,14 @@ async function handleDownloadPDF() {
 
           {/* Invoice Preview */}
           {/* <div ref={invoiceRef} className="bg-white p-4 rounded-lg shadow-sm print:shadow-none"> */}
-          <div 
+   <div 
   ref={invoiceRef} 
   id="invoice-preview" 
-  className="bg-white rounded-lg shadow-sm print:shadow-none px-4 sm:px-7  py-6 sm:py-8 w-full
- w-[794px] min-h-[1123px] mx-auto overflow-x-auto"
+  className="bg-white rounded-lg shadow-sm print:shadow-none 
+             px-4 sm:px-7 py-6 sm:py-8 
+             w-full max-w-[794px] mx-auto"
 >
+
   <div className="border-t p-4 bg-gray-50 print:bg-white">
             <div className="bg-white p-4 rounded-lg shadow-sm print:shadow-none">
               {/* Company Header in Invoice */}
@@ -363,16 +394,13 @@ async function handleDownloadPDF() {
         .btn-primary{ background:#0ea5a4; color:white; padding:0.5rem 0.75rem; border-radius:0.5rem; }
         .btn-outline{ background:white; border:1px solid #cbd5e1; padding:0.5rem 0.75rem; border-radius:0.5rem; }
         .btn-ghost{ background:transparent; border:1px dashed #cbd5e1; padding:0.45rem 0.6rem; border-radius:0.5rem; }
-
         @media print {
           body * { visibility: visible; }
           #invoice-preview {
-    padding-left: 20mm; 
-    padding-right: 20mm;
-    width: 210mm;      /* A4 width */
-    min-height: 297mm; /* A4 height */
+ width: 210mm;
+    min-height: 297mm;
+    padding: 15mm;
     margin: 0 auto;
-    padding: 15mm;     /* uniform padding */
     box-sizing: border-box;
   } , #invoice-preview * { padding-left: 5%;
   padding-right: 5%; visibility: visible; }
