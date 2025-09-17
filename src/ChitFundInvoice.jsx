@@ -2,7 +2,6 @@ import React, { useState, useRef } from "react";
 import logo from './Logo.png'
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import "./invoice.css"; // custom styles (see below)
 
 export default function ChitFundInvoice() {
   // Form state to hold all input values
@@ -298,7 +297,7 @@ async function handleShareWhatsApp() {
    <div 
   ref={invoiceRef} 
   id="invoice-preview" 
-  className="invoice-container bg-white rounded-lg w-full sm:w-[794px] sm:min-h-[1123px] mx-auto print:shadow-none 
+  className="bg-white rounded-lg w-full sm:w-[794px] sm:min-h-[1123px] mx-auto print:shadow-none 
              px-4 sm:px-7 py-6 sm:py-8 
             max-w-[794px] mx-auto"
 >
@@ -444,7 +443,7 @@ async function handleShareWhatsApp() {
         <div className="mt-4 border-t-2 border-gray-300 pt-4">
           <div className="w-full h-28 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
             <span className="text-gray-500 text-lg">
-              Contact Advertisement Our Shop's/Business
+              Contact Our Advertisement Shop's/Business
             </span>
           </div>
         </div>
