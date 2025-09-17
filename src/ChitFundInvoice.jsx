@@ -219,16 +219,22 @@ async function handleDownloadPDF() {
           </div>
 
           {/* Invoice Preview */}
-          <div ref={invoiceRef} className="bg-white p-4 rounded-lg shadow-sm print:shadow-none">
+          {/* <div ref={invoiceRef} className="bg-white p-4 rounded-lg shadow-sm print:shadow-none"> */}
+          <div 
+  ref={invoiceRef} 
+  id="invoice-preview" 
+  className="bg-white rounded-lg shadow-sm print:shadow-none px-4 sm:px-7  py-6 sm:py-8 w-full
+ w-[794px] min-h-[1123px] mx-auto overflow-x-auto"
+>
   <div className="border-t p-4 bg-gray-50 print:bg-white">
             <div className="bg-white p-4 rounded-lg shadow-sm print:shadow-none">
               {/* Company Header in Invoice */}
-              {/* <div className="text-center mb-4">
+              <div className="text-center mb-4">
                 <img src={logo} alt="Company Logo" className="h-21 w-20 mx-auto mb-0" />
                 <h2 className="font-bold text-lg">TRS Chit Fund</h2>
                 <p className="text-xs text-gray-600">2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</p>
                 <p className="text-xs text-gray-600">Mobile: +91 98765 43210</p>
-              </div> */}
+              </div>
 
               <div className="flex items-start justify-between">
                 <div>
@@ -242,7 +248,7 @@ async function handleDownloadPDF() {
               </div>
 
               {/* Invoice Body */}
-              <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              {/* <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="text-gray-500 text-xs">Name</div>
                   <div className="font-medium">{form.customerName || "-"}</div>
@@ -278,7 +284,44 @@ async function handleDownloadPDF() {
                   <div className="text-gray-500 text-xs">Collection Name</div>
                   <div className="font-medium">{form.agentName || "-"}</div>
                 </div>
-              </div>
+              </div> */}
+<div className="mt-4 grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
+  <div className="text-left">
+    <div className="text-gray-500 text-xs">Name</div>
+    <div className="font-semibold">{form.customerName || "-"}</div>
+  </div>
+  <div className="text-right">
+    <div className="text-gray-500 text-xs">Chit Number</div>
+    <div className="font-semibold">{form.chitNumber || "-"}</div>
+  </div>
+
+  <div className="text-left">
+    <div className="text-gray-500 text-xs">Plan</div>
+    <div className="font-semibold">{form.planName || "-"}</div>
+  </div>
+  <div className="text-right">
+    <div className="text-gray-500 text-xs">Plan Amount</div>
+    <div className="font-semibold">{getPlanLabel(form.planAmount)}</div>
+  </div>
+
+  <div className="text-left">
+    <div className="text-gray-500 text-xs">Cash Received</div>
+    <div className="font-semibold">{formatCurrency(form.cashReceived)}</div>
+  </div>
+  <div className="text-right">
+    <div className="text-gray-500 text-xs">Payment Type</div>
+    <div className="font-semibold">{form.paymentType}</div>
+  </div>
+
+  <div className="text-left">
+    <div className="text-gray-500 text-xs">User Type</div>
+    <div className="font-semibold">{form.userType}</div>
+  </div>
+  <div className="text-right">
+    <div className="text-gray-500 text-xs">Collection Name</div>
+    <div className="font-semibold">{form.agentName || "-"}</div>
+  </div>
+</div>
 
               {/* Notes */}
               <div className="mt-4 text-sm">
@@ -323,7 +366,16 @@ async function handleDownloadPDF() {
 
         @media print {
           body * { visibility: visible; }
-          #invoice-preview, #invoice-preview * { visibility: visible; }
+          #invoice-preview {
+    padding-left: 20mm; 
+    padding-right: 20mm;
+    width: 210mm;      /* A4 width */
+    min-height: 297mm; /* A4 height */
+    margin: 0 auto;
+    padding: 15mm;     /* uniform padding */
+    box-sizing: border-box;
+  } , #invoice-preview * { padding-left: 5%;
+  padding-right: 5%; visibility: visible; }
           form, .btn-primary, .btn-outline, .btn-ghost { display:none !important; }
           @page { size: A4; margin: 12mm; }
         }
@@ -331,3 +383,4 @@ async function handleDownloadPDF() {
     </div>
   );
 }
+ 
