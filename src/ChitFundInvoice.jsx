@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import logo from './Logo.png'
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import "./invoice.css"; // custom styles (see below)
 
 export default function ChitFundInvoice() {
   // Form state to hold all input values
@@ -55,17 +56,53 @@ function getPlanLabel(val) {
   return plans[val] || "-";
 }
 // ✅ Generate PDF (always single A4 page, mobile + desktop)
+
+
+  //download PDF
+// async function handleDownloadPDF() {
+//   const pdf = await generatePDF();
+//     pdf.save(`chitfund_invoice_${form.customerName || "customer"}.pdf`);
+  
+//   // Share via WhatsApp
+//   async function handleShareWhatsApp() {
+//   const pdf = await generatePDF();
+//   const pdfBlob = pdf.output("blob");
+//   const pdfFile = new File([pdfBlob], "ChitFund_Invoice.pdf", {
+//     type: "application/pdf",
+//   });
+
+//   if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+//     try {
+//       await navigator.share({
+//         title: "Chit Fund Invoice",
+//         text: "Here is your receipt from TRS Chit Fund",
+//         files: [pdfFile],
+//       });
+//     } catch (err) {
+//       console.error("Share failed:", err);
+//     }
+//   } else {
+//     // ✅ WhatsApp Fallback
+//     const url = URL.createObjectURL(pdfBlob);
+//     window.open(`https://wa.me/?text=Here is your Chit Fund Invoice: ${url}`);
+//   }
+// }
+// -- generatePDF: create a jsPDF instance and fit the invoice to full A4 width (no side gaps)
 async function generatePDF() {
-  setLoading(true);
   const input = invoiceRef.current;
+  if (!input) throw new Error("invoiceRef is empty");
+
+  // use devicePixelRatio for better quality on mobile
+  const scale = Math.max(2, window.devicePixelRatio || 1);
 
   const canvas = await html2canvas(input, {
-    scale: 2,
+    scale,
     useCORS: true,
     scrollX: 0,
-    scrollY: 0,
-    windowWidth: input.scrollWidth,
-    windowHeight: input.scrollHeight,
+    scrollY: -window.scrollY, // capture visible layout correctly
+    windowWidth: document.documentElement.clientWidth,
+    windowHeight: document.documentElement.clientHeight,
+    allowTaint: true,
   });
 
   const imgData = canvas.toDataURL("image/png");
@@ -74,59 +111,90 @@ async function generatePDF() {
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
-  // Get image properties
-  const imgWidth = imgProps.width;
-
-  // Scale proportionally to fit A4
-  const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-  const finalWidth = imgWidth * ratio;
-
-   // Force full width (no left/right gap)
+  // compute scaled height while forcing full width (no left/right gaps)
   const imgProps = pdf.getImageProperties(imgData);
-  const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+  const imgHeightMm = (imgProps.height * pdfWidth) / imgProps.width;
+  const finalHeight = imgHeightMm > pdfHeight ? pdfHeight : imgHeightMm;
 
-  // If height is bigger than page, shrink to fit page height
-  const finalHeight = imgHeight > pdfHeight ? pdfHeight : imgHeight;
+  // put top-left at 0,0 so it fills horizontally
+  pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, finalHeight,imgHeightMm);
 
-  pdf.addImage(imgData, "PNG",0,0 , pdfWidth, finalHeight);
-
-  setLoading(false);
   return pdf;
 }
 
-
-  //download PDF
+// -- Download (forces download via blob -> anchor click)
 async function handleDownloadPDF() {
-  const pdf = await generatePDF();
-    pdf.save(`chitfund_invoice_${form.customerName || "customer"}.pdf`);
-  }
+  setLoading(true);
+  try {
+    const pdf = await generatePDF();
+    const blob = pdf.output("blob");
+    const filename = `chitfund_invoice_${(form.customerName || "customer").replace(/\s+/g, "_")}.pdf`;
 
+    // create anchor and force download (works reliably across browsers)
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-
-  // Share via WhatsApp
-  async function handleShareWhatsApp() {
-  const pdf = await generatePDF();
-  const pdfBlob = pdf.output("blob");
-  const pdfFile = new File([pdfBlob], "ChitFund_Invoice.pdf", {
-    type: "application/pdf",
-  });
-
-  if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-    try {
-      await navigator.share({
-        title: "Chit Fund Invoice",
-        text: "Here is your receipt from TRS Chit Fund",
-        files: [pdfFile],
-      });
-    } catch (err) {
-      console.error("Share failed:", err);
-    }
-  } else {
-    // ✅ WhatsApp Fallback
-    const url = URL.createObjectURL(pdfBlob);
-    window.open(`https://wa.me/?text=Here is your Chit Fund Invoice: ${url}`);
+    // revoke after a bit
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch (err) {
+    console.error("Download PDF failed:", err);
+    alert("Could not download PDF — check console for details.");
+  } finally {
+    setLoading(false);
   }
 }
+
+// -- Share via WhatsApp (Web Share API if files supported; otherwise open PDF in new tab + open WA text)
+async function handleShareWhatsApp() {
+  setLoading(true);
+  try {
+    const pdf = await generatePDF();
+    const blob = pdf.output("blob");
+    const filename = `chitfund_invoice_${(form.customerName || "customer").replace(/\s+/g, "_")}.pdf`;
+    const file = new File([blob], filename, { type: "application/pdf" });
+
+    // ✅ Case 1: Mobile browsers that support file share
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: "Chit Fund Invoice",
+        text: "Here is your Chit Fund Invoice from TRS Chit Fund.",
+      });
+      return;
+    }
+
+    // ❌ Case 2: Fallback (desktop or unsupported mobile)
+    // Auto-download the file
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    // Open WhatsApp with a text
+    const text = encodeURIComponent(
+      "Invoice generated ✅. The PDF has been downloaded — please attach it here."
+    );
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch (err) {
+    console.error("WhatsApp share failed:", err);
+    alert("Could not share to WhatsApp — PDF downloaded instead.");
+  } finally {
+    setLoading(false);
+  }
+}
+
+
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8 flex flex-col items-center">
@@ -189,7 +257,7 @@ async function handleDownloadPDF() {
                   <label className="text-sm">Payment Type</label>
                   <select name="paymentType" value={form.paymentType} onChange={handleChange} className="input">
                     <option>Cash</option>
-                    <option>UPI</option>
+                    <option>UPI/GPAY/PhonePe</option>
                   </select>
                 </div>
               </div>
@@ -230,7 +298,7 @@ async function handleDownloadPDF() {
    <div 
   ref={invoiceRef} 
   id="invoice-preview" 
-  className="bg-white rounded-lg w-full sm:w-[794px] sm:min-h-[1123px] mx-auto print:shadow-none 
+  className="invoice-container bg-white rounded-lg w-full sm:w-[794px] sm:min-h-[1123px] mx-auto print:shadow-none 
              px-4 sm:px-7 py-6 sm:py-8 
             max-w-[794px] mx-auto"
 >
@@ -245,17 +313,20 @@ async function handleDownloadPDF() {
                 <p className="text-xs text-gray-600"><strong>Contact: Ramesh- +91-9444545907 & Siva - +91-7200120078</strong> </p>
               </div>
 
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="font-semibold text-lg">Customer Receipt</h2>
-                  <div className="text-xs text-gray-500"></div>
-                </div>
-                <div className="text-right text-sm">
-                  <div className="font-medium">Date</div>
-                  <div className="text-gray-700">{form.date}</div>
-                </div>
-              </div>
+<div className="flex items-start justify-between mb-4">
+  {/* Left Box - Receipt Title */}
+  <div className="border-2 border-gray-100 rounded-lg px-4 py-2 bg-gray-50">
+    <h2 className="font-bold text-lg text-center">Chit Payment Receipt</h2>
+    <div className="text-xs text-gray-500 text-center"></div>
+  </div>
 
+  {/* Right Box - Date */}
+  <div className="text-right text-sm ml-4">
+    <div className="font-medium">Date</div>
+    <div className="text-gray-700">{form.date}</div>
+  </div>
+</div>
+            
               {/* Invoice Body */}
               {/* <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -300,7 +371,7 @@ async function handleDownloadPDF() {
     <div className="font-semibold">{form.customerName || "-"}</div>
   </div>
   <div className="text-right">
-    <div className="text-gray-500 text-xs">Chit Number</div>
+    <div className="text-gray-500 text-xs">Chit Month</div>
     <div className="font-semibold">{form.chitNumber || "-"}</div>
   </div>
 
@@ -352,8 +423,31 @@ async function handleDownloadPDF() {
                   <div className="font-medium mt-0">Authorized Signatory</div>
                 </div>
               </div>
-
-              <div className="mt-3 text-xs text-gray-400">This is a computer-generated receipt and doesn't require physical seal.</div>
+{/* 🔹 More Chit Plans Link */}
+        <div className="text-center mb-6">
+          <a
+            href="https://selvaganapathi-da.github.io/CHIT_TRS/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline font-medium text-lg"
+          >
+          Chit Plans
+          </a>
+        </div>
+        
+              {/* <div className="mt-3 text-xs text-gray-400">This is a computer-generated receipt and doesn't require physical seal.</div> */}
+             {/* 🔹 Footer Credit */}
+        <div className="mt-4 text-center text-sm text-gray-500">
+          Created & Developed by <span className="font-semibold">SELVAGANAPATHI R</span>
+        </div>
+        {/* 🔹 Advertisement Banner */}
+        <div className="mt-4 border-t-2 border-gray-300 pt-4">
+          <div className="w-full h-28 flex items-center justify-center bg-gray-100 border-2 border-dashed border-gray-400 rounded-lg">
+            <span className="text-gray-500 text-lg">
+              Contact Advertisement Our Shop's/Business
+            </span>
+          </div>
+        </div>
             </div>
           </div>
         </div>
@@ -364,6 +458,7 @@ async function handleDownloadPDF() {
         {/* <div className="mt-4 text-sm text-gray-600">
           <div className="mb-1">Tips: Use the Print button on mobile to save as PDF or directly print via connected printer. Use WhatsApp share to send the invoice text quickly.</div>
         </div> */}
+        
       </div>
 
       {/* Inline styles for inputs and buttons */}
@@ -385,6 +480,7 @@ async function handleDownloadPDF() {
   padding-right: 5%; visibility: visible; }
           form, .btn-primary, .btn-outline, .btn-ghost { display:none !important; }
           @page { size: A4; margin: 12mm; }
+
         }
       `}</style>
     </div>

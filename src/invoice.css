@@ -1,0 +1,15 @@
+/* invoice.css */
+.invoice-container {
+  font-size: 18px;   /* increase base text size */
+  line-height: 1.6;
+}
+
+.invoice-container label,
+.invoice-container .label {
+  font-weight: 600;
+  font-size: 18px;   /* bigger labels */
+}
+
+.invoice-container .value {
+  font-size: 18px;
+}
