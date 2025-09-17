@@ -68,8 +68,7 @@ function getPlanLabel(val) {
   };
   return plans[val] || "-";
 }
-
- // ✅ Generate PDF
+// ✅ Generate PDF (single page always)
 async function generatePDF() {
   setLoading(true);
   const input = invoiceRef.current;
@@ -89,28 +88,8 @@ async function generatePDF() {
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
-  const imgProps = pdf.getImageProperties(imgData);
-  const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-  // add with margins (10mm each side)
-  const margin = 1; 
-  const usableWidth = pdfWidth - margin * 2;
-  const usableHeight = (imgProps.height * usableWidth) / imgProps.width;
-
-  if (usableHeight > pdfHeight - margin * 2) {
-    // multipage handling
-    let position = margin;
-    let heightLeft = usableHeight;
-
-    while (heightLeft > 0) {
-      pdf.addImage(imgData, "PNG", margin, position, usableWidth, usableHeight);
-      heightLeft -= (pdfHeight - margin * 2);
-      position -= (pdfHeight - margin * 2);
-      if (heightLeft > 0) pdf.addPage();
-    }
-  } else {
-    pdf.addImage(imgData, "PNG", margin, margin, usableWidth, usableHeight);
-  }
+  // Fit image into single page (scale to A4)
+  pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
 
   setLoading(false);
   return pdf;
@@ -257,8 +236,8 @@ async function handleDownloadPDF() {
             max-w-[794px] mx-auto"
 >
 
-  <div className="border-t p-4 bg-gray-50 print:bg-white">
-            <div className="bg-white p-4 rounded-lg shadow-sm print:shadow-none">
+  <div className="border-t p-1 bg-gray-50 print:bg-white">
+            <div className="bg-white p-1 rounded-lg shadow-sm print:shadow-none">
               {/* Company Header in Invoice */}
               <div className="text-center mb-4">
                 <img src={logo} alt="Company Logo" className="h-21 w-20 mx-auto mb-0" />
@@ -316,7 +295,7 @@ async function handleDownloadPDF() {
                   <div className="font-medium">{form.agentName || "-"}</div>
                 </div>
               </div> */}
-<div className="mt-4 grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
+<div className="mt-2 grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
   <div className="text-left">
     <div className="text-gray-500 text-xs">Name</div>
     <div className="font-semibold">{form.customerName || "-"}</div>
