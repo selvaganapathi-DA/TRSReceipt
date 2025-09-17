@@ -93,7 +93,7 @@ async function generatePDF() {
   const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
   // add with margins (10mm each side)
-  const margin = 10; 
+  const margin = 1; 
   const usableWidth = pdfWidth - margin * 2;
   const usableHeight = (imgProps.height * usableWidth) / imgProps.width;
 
@@ -252,9 +252,9 @@ async function handleDownloadPDF() {
    <div 
   ref={invoiceRef} 
   id="invoice-preview" 
-  className="bg-white rounded-lg shadow-sm print:shadow-none 
+  className="bg-white rounded-lg w-full sm:w-[794px] sm:min-h-[1123px] mx-auto print:shadow-none 
              px-4 sm:px-7 py-6 sm:py-8 
-             w-full max-w-[794px] mx-auto"
+            max-w-[794px] mx-auto"
 >
 
   <div className="border-t p-4 bg-gray-50 print:bg-white">
@@ -398,10 +398,11 @@ async function handleDownloadPDF() {
           body * { visibility: visible; }
           #invoice-preview {
  width: 210mm;
-    min-height: 297mm;
-    padding: 15mm;
-    margin: 0 auto;
-    box-sizing: border-box;
+    height: 297mm;
+   margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
   } , #invoice-preview * { padding-left: 5%;
   padding-right: 5%; visibility: visible; }
           form, .btn-primary, .btn-outline, .btn-ghost { display:none !important; }
