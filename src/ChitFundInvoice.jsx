@@ -2,20 +2,6 @@ import React, { useState, useRef } from "react";
 import logo from './Logo.png'
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-// 📌 ChitFundInvoice Component — Extended Version
-// ---------------------------------------------------------------------
-// This is a ReactJS component built using functional components + hooks.
-// Purpose: Generate a responsive Chit Fund Payment Invoice for customers.
-//
-// Features:
-// ✅ User-friendly form to enter invoice details
-// ✅ Live preview of the invoice (print-friendly)
-// ✅ Supports sharing via WhatsApp, Web Share API, Copy to Clipboard
-// ✅ Mobile-first responsive UI with TailwindCSS
-// ✅ Print as PDF option (with print styles)
-// ✅ Customization: Added Logo, Company Name, Address, and Mobile number
-//
-// ---------------------------------------------------------------------
 
 export default function ChitFundInvoice() {
   // Form state to hold all input values
@@ -68,7 +54,7 @@ function getPlanLabel(val) {
   };
   return plans[val] || "-";
 }
-// ✅ Generate PDF (single page always)
+// ✅ Generate PDF (always single A4 page, mobile + desktop)
 async function generatePDF() {
   setLoading(true);
   const input = invoiceRef.current;
@@ -88,8 +74,21 @@ async function generatePDF() {
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
-  // Fit image into single page (scale to A4)
-  pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+  // Get image properties
+  const imgWidth = imgProps.width;
+
+  // Scale proportionally to fit A4
+  const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+  const finalWidth = imgWidth * ratio;
+
+   // Force full width (no left/right gap)
+  const imgProps = pdf.getImageProperties(imgData);
+  const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+  // If height is bigger than page, shrink to fit page height
+  const finalHeight = imgHeight > pdfHeight ? pdfHeight : imgHeight;
+
+  pdf.addImage(imgData, "PNG",0,0 , pdfWidth, finalHeight);
 
   setLoading(false);
   return pdf;
@@ -241,15 +240,15 @@ async function handleDownloadPDF() {
               {/* Company Header in Invoice */}
               <div className="text-center mb-4">
                 <img src={logo} alt="Company Logo" className="h-21 w-20 mx-auto mb-0" />
-                <h2 className="font-bold text-lg">TRS Chit Fund</h2>
+                <h2 className="font-bold text-lg"><bold>TRS Chit Fund</bold></h2>
                 <p className="text-xs text-gray-600">2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</p>
-                <p className="text-xs text-gray-600">Mobile: +91 98765 43210</p>
+                <p className="text-xs text-gray-600"><strong>Contact: Ramesh- +91-9444545907 & Siva - +91-7200120078</strong> </p>
               </div>
 
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="font-semibold text-lg">Receipt</h2>
-                  <div className="text-xs text-gray-500">Customer Payment Acknowledge</div>
+                  <h2 className="font-semibold text-lg">Customer Receipt</h2>
+                  <div className="text-xs text-gray-500"></div>
                 </div>
                 <div className="text-right text-sm">
                   <div className="font-medium">Date</div>
