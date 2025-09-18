@@ -3,11 +3,13 @@ import logo from './Logo.png'
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import { Button } from "@mui/material";
 export default function ChitFundInvoice() {
   // Form state to hold all input values
   const [form, setForm] = useState({
     customerName: "",
-    date: new Date().toISOString().slice(0, 10),
+    date: new Date().toISOString().slice(0, 10).split("-").reverse().join("/"),
     chitNumber: "",
     planName: "",
     planAmount: "",
@@ -18,17 +20,22 @@ export default function ChitFundInvoice() {
     notes: "Nil",
     signature :"Ramesh.T"
   });
-  
+ 
 const signatureRef = useRef(null);
+
 
 const [loading,setLoading] = useState(false);
 const invoiceRef = useRef(null);
+
 
   // Generic input handler
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
   }
+
+
+
 
 
 
@@ -44,24 +51,24 @@ function formatCurrency(val) {
   });
 }
 
+
 // Get Plan Amount Label for Invoice
 function getPlanLabel(val) {
   const plans = {
-    "100000": "1,00,000",
-    "200000": "2,00,000",
-    "500000": "5,00,000",
-    "1000000": "10,00,000",
+    "100000": "₹1,00,000",
+    "200000": "₹2,00,000",
+    "500000": "₹5,00,000",
+    "1000000": "₹10,00,000",
   };
   return plans[val] || "-";
 }
 // ✅ Generate PDF (always single A4 page, mobile + desktop)
 
-
   //download PDF
 // async function handleDownloadPDF() {
 //   const pdf = await generatePDF();
 //     pdf.save(`chitfund_invoice_${form.customerName || "customer"}.pdf`);
-  
+ 
 //   // Share via WhatsApp
 //   async function handleShareWhatsApp() {
 //   const pdf = await generatePDF();
@@ -69,6 +76,7 @@ function getPlanLabel(val) {
 //   const pdfFile = new File([pdfBlob], "ChitFund_Invoice.pdf", {
 //     type: "application/pdf",
 //   });
+
 
 //   if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
 //     try {
@@ -91,8 +99,10 @@ async function generatePDF() {
   const input = invoiceRef.current;
   if (!input) throw new Error("invoiceRef is empty");
 
+
   // use devicePixelRatio for better quality on mobile
   const scale = Math.max(2, window.devicePixelRatio || 1);
+
 
   const canvas = await html2canvas(input, {
     scale:3,
@@ -104,11 +114,14 @@ async function generatePDF() {
     allowTaint: true,
   });
 
+
   const imgData = canvas.toDataURL("image/png");
   const pdf = new jsPDF("p", "pt", "a4");
 
+
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
+
 
   // compute scaled height while forcing full width (no left/right gaps)
   const imgProps = pdf.getImageProperties(imgData);
@@ -118,8 +131,10 @@ async function generatePDF() {
   pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
   pdf.save("chit-receipt.pdf");
 
+
   return pdf;
 }
+
 
 // -- Download (forces download via blob -> anchor click)
 async function handleDownloadPDF() {
@@ -129,6 +144,7 @@ async function handleDownloadPDF() {
     const blob = pdf.output("blob");
     const filename = `chitfund_invoice_${(form.customerName || "customer").replace(/\s+/g, "_")}.pdf`;
 
+
     // create anchor and force download (works reliably across browsers)
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -137,6 +153,7 @@ async function handleDownloadPDF() {
     document.body.appendChild(a);
     a.click();
     a.remove();
+
 
     // revoke after a bit
     setTimeout(() => URL.revokeObjectURL(url), 10000);
@@ -148,6 +165,7 @@ async function handleDownloadPDF() {
   }
 }
 
+
 // -- Share via WhatsApp (Web Share API if files supported; otherwise open PDF in new tab + open WA text)
 async function handleShareWhatsApp() {
   setLoading(true);
@@ -157,7 +175,7 @@ async function handleShareWhatsApp() {
     const filename = `Payment_receipt_${(form.customerName || "customer").replace(/\s+/g, "_")}.pdf`;
     const file = new File([blob], filename, { type: "application/pdf" });
 
-    // ✅ Case 1: Mobile browsers that support file share
+    // ✅ Case 1: Mobile browsers (native share works)
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         files: [file],
@@ -167,8 +185,7 @@ async function handleShareWhatsApp() {
       return;
     }
 
-    // ❌ Case 2: Fallback (desktop or unsupported mobile)
-    // Auto-download the file
+    // ❌ Case 2: Desktop fallback
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -177,7 +194,9 @@ async function handleShareWhatsApp() {
     a.click();
     a.remove();
 
-    // Open WhatsApp with a text
+    alert("Invoice downloaded ✅. Please open WhatsApp and attach the PDF manually.");
+
+    // Open WhatsApp with prefilled text (file cannot be attached automatically)
     const text = encodeURIComponent(
       "Invoice generated ✅. The PDF has been downloaded — please attach it here."
     );
@@ -192,6 +211,7 @@ async function handleShareWhatsApp() {
   }
 }
 
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8 flex flex-col items-center">
       <div className="w-full max-w-xl">
@@ -205,6 +225,7 @@ async function handleShareWhatsApp() {
           {/* <div className="mt-2 text-xs text-gray-500">Responsive • Mobile-first Invoice Generator</div> */}
         </div>
 
+
         {/* Form + Actions */}
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <div className="p-4">
@@ -212,6 +233,7 @@ async function handleShareWhatsApp() {
               {/* Customer Name */}
               <label className="text-sm">Name</label>
               <input name="customerName" value={form.customerName} onChange={handleChange} className="input" placeholder="Customer full name" />
+
 
               {/* Date & Chit No */}
               <div className="grid grid-cols-2 gap-3">
@@ -224,6 +246,7 @@ async function handleShareWhatsApp() {
                   <input name="chitNumber" value={form.chitNumber} onChange={handleChange} className="input" placeholder="001" />
                 </div>
               </div>
+
 
               {/* Plan */}
               <div className="grid grid-cols-2 gap-3">
@@ -243,6 +266,7 @@ async function handleShareWhatsApp() {
                 </div>
               </div>
 
+
               {/* Payment */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -257,6 +281,7 @@ async function handleShareWhatsApp() {
                   </select>
                 </div>
               </div>
+
 
               {/* User & Agent */}
               <div className="grid grid-cols-2 gap-3">
@@ -273,40 +298,53 @@ async function handleShareWhatsApp() {
                 </div>
               </div>
 
+
               {/* Notes */}
               <label className="text-sm">Notes (optional)</label>
               <textarea name="notes" value={form.notes} onChange={handleChange} className="input h-20" placeholder="Any remarks or payment reference" />
+
 
               {/* Actions */}
               <div className="flex gap-2 mt-2">
                 <button type="button" onClick={handleDownloadPDF} className="btn-primary flex-1">{loading ? "Generating..." : "Download PDF"}
 </button>
-                <button type="button" onClick={handleShareWhatsApp} className="btn-outline">{loading ? "Preparing..." : "Share via WhatsApp"}
-</button>
+
+<Button
+  variant="contained"
+  color="success"
+  startIcon={<WhatsAppIcon />}
+  onClick={handleShareWhatsApp}
+  disabled={loading}
+>
+  {loading ? "Sharing..." : "Share on WhatsApp"}
+</Button>
               </div>
 
-            
+
+           
             </form>
           </div>
 
+
           {/* Invoice Preview */}
           {/* <div ref={invoiceRef} className="bg-white p-4 rounded-lg shadow-sm print:shadow-none"> */}
-   <div 
-  ref={invoiceRef} 
-  id="invoice-preview" 
-  className="bg-white rounded-lg w-full sm:w-[794px] sm:min-h-[1123px] mx-auto print:shadow-none 
-             px-4 sm:px-7 py-6 sm:py-8 
+   <div
+  ref={invoiceRef}
+  id="invoice-preview"
+  className="bg-white rounded-lg w-full sm:w-[794px] sm:min-h-[1123px] mx-auto print:shadow-none
+             px-4 sm:px-7 py-6 sm:py-8
             max-w-[794px] mx-auto" style={{ width: "794px",height: "1123px",boxSizing: "border-box", }}
 >
+
 
   <div className="border-t p-1 bg-gray-50 print:bg-white">
             <div className="bg-white p-1 rounded-lg shadow-sm print:shadow-none">
               {/* Company Header in Invoice */}
               <div className="text-center mb-4">
                 <img src={logo} alt="Company Logo" className="h-21 w-20 mx-auto mb-0" />
-                <h2 className="font-bold text-lg"><bold>TRS Chit Fund</bold></h2>
-                <p className="text-xs text-gray-600">2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</p>
-                <p className="text-xs text-gray-600"><strong>Ramesh-9444545907 & Siva-7200120078</strong> </p>
+                <h2 className="font-bold text-lg"><bold><h2>TRS Chit Fund</h2>T</bold></h2>
+                <p className="text-xs text-gray-600"><h4>2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</h4></p>
+                <p className="text-xs text-gray-600"><strong><h3>Contact:Ramesh-9444545907 & Siva-7200120078</h3></strong> </p>
               </div>
 
 <div className="flex items-start justify-between mb-4">
@@ -316,13 +354,14 @@ async function handleShareWhatsApp() {
     <div className="text-xs text-gray-500 text-center"></div>
   </div>
 
+
   {/* Right Box - Date */}
   <div className="text-right text-sm ml-4">
-    <div className="font-medium">Date</div>
-    <div className="text-gray-700">{form.date}</div>
+    <div className="font-medium"><h4>Date</h4></div>
+    <div className="text-gray-700"><h4>{form.date}</h4></div>
   </div>
 </div>
-            
+           
               {/* Invoice Body */}
               {/* <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -334,6 +373,7 @@ async function handleShareWhatsApp() {
                   <div className="font-medium">{form.chitNumber || "-"}</div>
                 </div>
 
+
                 <div>
                   <div className="text-gray-500 text-xs">Plan</div>
                   <div className="font-medium">{form.planName || "-"}</div>
@@ -343,6 +383,7 @@ async function handleShareWhatsApp() {
                   <div className="font-medium">{getPlanLabel(form.planAmount)}</div>      
                 </div>
 
+
                 <div>
                   <div className="text-gray-500 text-xs">Cash Received</div>
                   <div className="font-medium">{formatCurrency(form.cashReceived)}</div>
@@ -351,6 +392,7 @@ async function handleShareWhatsApp() {
                   <div className="text-gray-500 text-xs">Payment Type</div>
                   <div className="font-medium">{form.paymentType}</div>
                 </div>
+
 
                 <div>
                   <div className="text-gray-500 text-xs">User Type</div>
@@ -363,31 +405,33 @@ async function handleShareWhatsApp() {
               </div> */}
 <div className="mt-2 grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
   <div className="text-left">
-    <div className="text-gray-500 text-xs">Name</div>
-    <div className="font-semibold">{form.customerName || "-"}</div>
+    <div className="text-gray-500 text-xs"><h3>Name</h3></div>
+    <div className="font-semibold"><h3>{form.customerName || "-"}</h3></div>
   </div>
   <div className="text-right">
-    <div className="text-gray-500 text-xs">Chit Month</div>
-    <div className="font-semibold">{form.chitNumber || "-"}</div>
+    <div className="text-gray-500 text-xs"><h3>Chit Month</h3></div>
+    <div className="font-semibold"><h3>{form.chitNumber || "-"}</h3></div>
   </div>
 
   <div className="text-left">
-    <div className="text-gray-500 text-xs">Plan</div>
-    <div className="font-semibold">{form.planName || "-"}</div>
+    <div className="text-gray-500 text-xs"><h3>Plan</h3></div>
+    <div className="font-semibold"><h3>{form.planName || "-"}</h3></div>
   </div>
   <div className="text-right">
-    <div className="text-gray-500 text-xs">Plan Amount</div>
-    <div className="font-semibold">{getPlanLabel(form.planAmount)}</div>
+    <div className="text-gray-500 text-xs"><h3>Plan Amount</h3></div>
+    <div className="font-semibold"><h3>₹{getPlanLabel(form.planAmount)}</h3></div>
   </div>
 
+
   <div className="text-left">
-    <div className="text-gray-500 text-xs">Cash Received</div>
-    <div className="font-semibold">{formatCurrency(form.cashReceived)}</div>
+    <div className="text-gray-500 text-xs"><h3>Cash Received</h3></div>
+    <div className="font-semibold"><h3>{formatCurrency(form.cashReceived)}</h3></div>
   </div>
   <div className="text-right">
-    <div className="text-gray-500 text-xs">Payment Type</div>
-    <div className="font-semibold">{form.paymentType}</div>
+    <div className="text-gray-500 text-xs"><h3>Payment Type</h3></div>
+    <div className="font-semibold"><h4>{form.paymentType}</h4></div>
   </div>
+
 
   <div className="text-left">
     <div className="text-gray-500 text-xs">User Type</div>
@@ -395,28 +439,30 @@ async function handleShareWhatsApp() {
   </div>
   <div className="text-right">
     <div className="text-gray-500 text-xs">Collection Name</div>
-    <div className="font-semibold">{form.agentName || "-"}</div>
+    <div className="font-semibold"><h3>{form.agentName || "-"}</h3></div>
   </div>
 </div>
+
 
               {/* Notes */}
               <div className="mt-4 text-sm">
                 <div className="text-gray-500 text-xs">Notes</div>
-                <div className="font-medium">{form.notes || "-"}</div>
+                <div className="font-medium"><h4>{form.notes || "-"}</h4></div>
               </div>
+
 
               {/* Signature */}
               <div className="mt-6 grid grid-cols-2 gap-4 items-end">
                 <div className="text-sm">
-                  <div className="text-gray-500 text-xs">Receiver Signature</div>
+                  <div className="text-gray-500 text-xs"><h5>Receiver Signature</h5></div>
                   <div ref={signatureRef} className="mt-6 h-14 border rounded-md flex items-center justify-center text-xs text-gray-400">
-                    <p className="mt-2">{form.customerName || "-"}</p>
+                    <p className="mt-2"><h4>{form.customerName || "-"}</h4></p>
 </div>
                 </div>
                 <div className="text-sm text-right">
-                  <div className="text-gray-500 text-xs">For TRS Chit Fund</div>
-                  <p className="mt-1">{form.agentName || "-"}</p>
-                  <div className="font-medium mt-0">Authorized Signatory</div>
+                  <div className="text-gray-500 text-xs"><h5>For TRS Chit Fund</h5></div>
+                  <p className="mt-1"><h4>{form.agentName || "-"}</h4></p>
+                  <div className="font-medium mt-0"><h5>Authorized Signatory</h5></div>
                 </div>
               </div>
 {/* 🔹 More Chit Plans Link */}
@@ -430,7 +476,7 @@ async function handleShareWhatsApp() {
           Chit Plans
           </a>
         </div>
-        
+       
               {/* <div className="mt-3 text-xs text-gray-400">This is a computer-generated receipt and doesn't require physical seal.</div> */}
              {/* 🔹 Footer Credit */}
         <div className="mt-4 text-center text-sm text-gray-500">
@@ -448,14 +494,16 @@ async function handleShareWhatsApp() {
           </div>
         </div>
 
+
 </div>
-        
+       
         {/* Tips */}
         {/* <div className="mt-4 text-sm text-gray-600">
           <div className="mb-1">Tips: Use the Print button on mobile to save as PDF or directly print via connected printer. Use WhatsApp share to send the invoice text quickly.</div>
         </div> */}
-        
+       
       </div>
+
 
       {/* Inline styles for inputs and buttons */}
       <style jsx>{`
@@ -474,7 +522,7 @@ async function handleShareWhatsApp() {
     box-shadow: none;
     font-family: 'Arial', 'Helvetica', sans-serif;
     line-height: 1.0;
-  } 
+  }
 #invoice-preview h2 {
   font-size: 20px;
   font-weight: 700;
@@ -496,3 +544,4 @@ async function handleShareWhatsApp() {
   );
 }
  
+
