@@ -105,18 +105,18 @@ async function generatePDF() {
   });
 
   const imgData = canvas.toDataURL("image/png");
-  const pdf = new jsPDF("p", "mm", "a4");
+  const pdf = new jsPDF("p", "pt", "a4");
 
   const pdfWidth = pdf.internal.pageSize.getWidth();
   const pdfHeight = pdf.internal.pageSize.getHeight();
 
   // compute scaled height while forcing full width (no left/right gaps)
   const imgProps = pdf.getImageProperties(imgData);
-  const imgHeightMm = (imgProps.height * pdfWidth) / imgProps.width;
-  const finalHeight = imgHeightMm > pdfHeight ? pdfHeight : imgHeightMm;
-
+  const imgWidth = pdfWidth;
+  const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
   // put top-left at 0,0 so it fills horizontally
-  pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, finalHeight,imgHeightMm);
+  pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+  pdf.save("chit-receipt.pdf");
 
   return pdf;
 }
@@ -154,7 +154,7 @@ async function handleShareWhatsApp() {
   try {
     const pdf = await generatePDF();
     const blob = pdf.output("blob");
-    const filename = `chitfund_invoice_${(form.customerName || "customer").replace(/\s+/g, "_")}.pdf`;
+    const filename = `Payment_receipt_${(form.customerName || "customer").replace(/\s+/g, "_")}.pdf`;
     const file = new File([blob], filename, { type: "application/pdf" });
 
     // ✅ Case 1: Mobile browsers that support file share
@@ -191,9 +191,6 @@ async function handleShareWhatsApp() {
     setLoading(false);
   }
 }
-
-
-
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8 flex flex-col items-center">
@@ -299,7 +296,7 @@ async function handleShareWhatsApp() {
   id="invoice-preview" 
   className="bg-white rounded-lg w-full sm:w-[794px] sm:min-h-[1123px] mx-auto print:shadow-none 
              px-4 sm:px-7 py-6 sm:py-8 
-            max-w-[794px] mx-auto"
+            max-w-[794px] mx-auto" style={{ width: "794px",height: "1123px",boxSizing: "border-box", }}
 >
 
   <div className="border-t p-1 bg-gray-50 print:bg-white">
@@ -469,16 +466,15 @@ async function handleShareWhatsApp() {
         @media print {
           body * { visibility: visible; }
           #invoice-preview {
- width: 210mm;
+    width: 210mm;
     height: 297mm;
-   margin: 0;
-    padding: 20;
+    margin: auto;
+    padding: 20mm;
     border: none;
     box-shadow: none;
-  } , #invoice-preview {
-  font-family: 'Arial', 'Helvetica', sans-serif;
-  line-height: 1.5;
-}
+    font-family: 'Arial', 'Helvetica', sans-serif;
+    line-height: 1.0;
+  } 
 #invoice-preview h2 {
   font-size: 20px;
   font-weight: 700;
@@ -489,11 +485,11 @@ async function handleShareWhatsApp() {
 #invoice-preview .text-xs {
   font-size: 12px;
 }
+   @page { size: A4; margin:0; }
 , #invoice-preview * { padding-left: 5%;
   padding-right: 5%; visibility: visible; }
           form, .btn-primary, .btn-outline, .btn-ghost { display:none !important; }
-          @page { size: A4; margin: 12mm; }
-
+         
         }
       `}</style>
     </div>
