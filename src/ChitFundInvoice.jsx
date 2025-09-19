@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import logo from './Logo.png'
+import logo from './Logoo.png'
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
@@ -17,11 +17,11 @@ export default function ChitFundInvoice() {
     planName: "",
     planAmount: "",
     cashReceived: "₹",
-    paymentType: "Cash",
-    agentName: "",
-    userType: "Chit User",
-    notes: "Nil",
-    signature :"Ramesh.T"
+    paymentType: "",
+    agentName: "-",
+    userType: "-",
+    notes: "--",
+    signature :""
   });
  
 const signatureRef = useRef(null);
@@ -215,9 +215,9 @@ async function handleShareWhatsApp() {
     <div className="min-h-screen bg-gray-50 p-4 sm:p-8 flex flex-col items-center">
       <div className="w-full max-w-xl">
         {/* Header */}
-        <div className="flex flex-col items-center justify-center mb-4 text-center">
+        <div className="flex flex-col items-center justify-center mb-4 mt-5 text-center">
           {/* Company Logo */}
-          <img src = {logo} alt="Company Logo" className="h-25 w-20 object-contain mb-0" />
+          <img src = {logo} alt="Company Logo" className="h-25 w-20 object-contain mb-0 mt-5" />
           <h1 className="text-2xl font-bold">TRS Chit Fund</h1>
           <p className="text-gray-600 text-sm">2B, ChinnaSamy Naidu Street, Dharmapuri-636701, Tamil Nadu</p>
           <p className="text-gray-600 text-sm">Contact: Ramesh- +91 9444545907 & Siva-7200120078</p>
@@ -335,28 +335,39 @@ async function handleShareWhatsApp() {
             <div className="bg-white p-1 rounded-lg shadow-sm print:shadow-none">
               {/* Company Header in Invoice */}
               <div className="text-center mb-4">
-                <img src={logo} alt="Company Logo" className="mx-auto mb-2 w-32 h-32 object-contain" />
-                <h2 className="font-bold text-2xl"><bold>TRS Chit Fund</bold></h2>
-                <p className="text-base text-gray-600"><h4>2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</h4></p>
-                <p className="text-base text-gray-600"><strong><h3>Contact:Ramesh-9444545907 & Siva-7200120078</h3></strong> </p>
-              </div>
+  <img 
+    src={logo} 
+    alt="Company Logo" 
+    className="mx-auto mb-0 w-24 h-24 object-contain" 
+  />
+  <h2 className="font-bold text-2xl mt-0 mb-1"><bold>TRS Chit Fund</bold></h2>
+   <p className="text-base text-gray-600"><h4>2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</h4></p>
+   <p className="text-base text-gray-600"><strong><h3>Contact:Ramesh-9444545907 & Siva-7200120078</h3></strong></p>
+</div>
 
-<div className="flex items-start justify-between mb-4">
-  {/* Left Box - Receipt Title */}
-  <div className="border-2 border-gray-100 rounded-lg px-4 py-2 bg-gray-50">
+<div className="grid grid-cols-3 items-center mb-4">
+  {/* Left Box */}
+  <div className="text-left">
+    <h2 className="font-bold text-lg"></h2>
+  </div>
+
+  {/* Center Box - Receipt Title */} 
+  <div className="flex items-center justify-center text-center border-2 border-gray-100 rounded-lg px-4 py-2 bg-gray-50">
     <h2 className="font-bold text-lg">Chit Payment Receipt</h2>
     <div className="text-xs text-gray-500"></div>
   </div>
 
-
   {/* Right Box - Date */}
-  <div className="text-right text-sm ml-4">
-    <div className="font-medium"><h2 className="font-medium text-lg" >Date</h2></div>
-    <div className="text-gray-700"><h2 className="font-bold text-lg">{formatDate(new Date(form.date))}</h2></div>
+  <div className="text-right text-sm">
+    <div className="font-medium">
+      <h2 className="font-medium text-lg">Date</h2>
+    </div>
+    <div className="text-gray-700">
+      <h2 className="font-bold text-lg"><bold>{formatDate(new Date(form.date))}</bold></h2>
+    </div>
   </div>
-</div>
-           
-              {/* Invoice Body */}
+</div>         
+          {/* Invoice Body */}
               {/* <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <div className="text-gray-500 text-xs">Name</div>
