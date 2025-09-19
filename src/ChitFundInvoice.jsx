@@ -5,11 +5,14 @@ import jsPDF from "jspdf";
 
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import { Button } from "@mui/material";
+
 export default function ChitFundInvoice() {
   // Form state to hold all input values
+  // ✅ Utility to format date as dd-mm-yyyy
+
   const [form, setForm] = useState({
     customerName: "",
-    date: new Date().toISOString().slice(0, 10).split("-").reverse().join("/"),
+    date: formatDate(new Date()),
     chitNumber: "",
     planName: "",
     planAmount: "",
@@ -22,22 +25,21 @@ export default function ChitFundInvoice() {
   });
  
 const signatureRef = useRef(null);
-
-
 const [loading,setLoading] = useState(false);
 const invoiceRef = useRef(null);
 
+function formatDate(date) {
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+}
 
   // Generic input handler
   function handleChange(e) {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
   }
-
-
-
-
-
 
   // Format currency (INR)
 function formatCurrency(val) {
@@ -129,9 +131,6 @@ async function generatePDF() {
   const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
   // put top-left at 0,0 so it fills horizontally
   pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-  pdf.save("chit-receipt.pdf");
-
-
   return pdf;
 }
 
@@ -218,7 +217,7 @@ async function handleShareWhatsApp() {
         {/* Header */}
         <div className="flex flex-col items-center justify-center mb-4 text-center">
           {/* Company Logo */}
-          <img src = {logo} alt="Company Logo" className="h-20 w-20 object-contain mb-2" />
+          <img src = {logo} alt="Company Logo" className="h-25 w-20 object-contain mb-0" />
           <h1 className="text-2xl font-bold">TRS Chit Fund</h1>
           <p className="text-gray-600 text-sm">2B, ChinnaSamy Naidu Street, Dharmapuri-636701, Tamil Nadu</p>
           <p className="text-gray-600 text-sm">Contact: Ramesh- +91 9444545907 & Siva-7200120078</p>
@@ -318,15 +317,11 @@ async function handleShareWhatsApp() {
 >
   {loading ? "Sharing..." : "Share on WhatsApp"}
 </Button>
-              </div>
-
-
-           
+              </div>  
             </form>
           </div>
 
-
-          {/* Invoice Preview */}
+ {/* Invoice Preview */}
           {/* <div ref={invoiceRef} className="bg-white p-4 rounded-lg shadow-sm print:shadow-none"> */}
    <div
   ref={invoiceRef}
@@ -336,29 +331,28 @@ async function handleShareWhatsApp() {
             max-w-[794px] mx-auto" style={{ width: "794px",height: "1123px",boxSizing: "border-box", }}
 >
 
-
   <div className="border-t p-1 bg-gray-50 print:bg-white">
             <div className="bg-white p-1 rounded-lg shadow-sm print:shadow-none">
               {/* Company Header in Invoice */}
               <div className="text-center mb-4">
-                <img src={logo} alt="Company Logo" className="h-21 w-20 mx-auto mb-0" />
-                <h2 className="font-bold text-lg"><bold><h2>TRS Chit Fund</h2>T</bold></h2>
-                <p className="text-xs text-gray-600"><h4>2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</h4></p>
-                <p className="text-xs text-gray-600"><strong><h3>Contact:Ramesh-9444545907 & Siva-7200120078</h3></strong> </p>
+                <img src={logo} alt="Company Logo" className="h-24 w-26 mx-auto mb-0" />
+                <h2 className="font-bold text-2xl"><bold>TRS Chit Fund</bold></h2>
+                <p className="text-base text-gray-600"><h4>2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</h4></p>
+                <p className="text-base text-gray-600"><strong><h3>Contact:Ramesh-9444545907 & Siva-7200120078</h3></strong> </p>
               </div>
 
 <div className="flex items-start justify-between mb-4">
   {/* Left Box - Receipt Title */}
   <div className="border-2 border-gray-100 rounded-lg px-4 py-2 bg-gray-50">
-    <h2 className="font-bold text-lg text-center">Chit Payment Receipt</h2>
-    <div className="text-xs text-gray-500 text-center"></div>
+    <h2 className="font-bold text-lg">Chit Payment Receipt</h2>
+    <div className="text-xs text-gray-500"></div>
   </div>
 
 
   {/* Right Box - Date */}
   <div className="text-right text-sm ml-4">
-    <div className="font-medium"><h4>Date</h4></div>
-    <div className="text-gray-700"><h4>{form.date}</h4></div>
+    <div className="font-medium"><h2 className="font-medium text-lg" >Date</h2></div>
+    <div className="text-gray-700"><h2 className="font-bold text-lg">{formatDate(new Date(form.date))}</h2></div>
   </div>
 </div>
            
@@ -383,7 +377,6 @@ async function handleShareWhatsApp() {
                   <div className="font-medium">{getPlanLabel(form.planAmount)}</div>      
                 </div>
 
-
                 <div>
                   <div className="text-gray-500 text-xs">Cash Received</div>
                   <div className="font-medium">{formatCurrency(form.cashReceived)}</div>
@@ -405,66 +398,65 @@ async function handleShareWhatsApp() {
               </div> */}
 <div className="mt-2 grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
   <div className="text-left">
-    <div className="text-gray-500 text-xs"><h3>Name</h3></div>
-    <div className="font-semibold"><h3>{form.customerName || "-"}</h3></div>
+    <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg" >Name</h3></div>
+    <div className="font-semibold text-base"><h3 className="font-medium text-lg" >{form.customerName || "-"}</h3></div>
   </div>
   <div className="text-right">
-    <div className="text-gray-500 text-xs"><h3>Chit Month</h3></div>
-    <div className="font-semibold"><h3>{form.chitNumber || "-"}</h3></div>
+    <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg" >Chit Month</h3></div>
+    <div className="font-semibold text-base"><h3 className="font-medium text-lg" >{form.chitNumber || "-"}</h3></div>
   </div>
 
   <div className="text-left">
-    <div className="text-gray-500 text-xs"><h3>Plan</h3></div>
-    <div className="font-semibold"><h3>{form.planName || "-"}</h3></div>
+    <div className="text-gray-500 text-xs"><h2 className="font-medium text-lg">Plan</h2></div>
+    <div className="font-semibold text-base"><h2 className="font-medium text-lg">{form.planName || "-"}</h2></div>
   </div>
   <div className="text-right">
-    <div className="text-gray-500 text-xs"><h3>Plan Amount</h3></div>
-    <div className="font-semibold"><h3>₹{getPlanLabel(form.planAmount)}</h3></div>
+    <div className="text-gray-500 text-xs"><h2 className="font-medium text-lg">Plan Amount</h2></div>
+    <div className="font-semibold text-base"><h2 className="font-medium text-lg">{getPlanLabel(form.planAmount)}</h2></div>
+  </div>
+
+  <div className="text-left">
+    <div className="text-gray-500 text-xs"><h2 className="font-medium text-lg">Cash Received</h2></div>
+    <div className="font-semibold text-base"><h2 className="font-medium text-lg" >{formatCurrency(form.cashReceived)}</h2></div>
+  </div>
+  <div className="text-right">
+    <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg" >Payment Type</h3></div>
+    <div className="font-semibold text-base"><h3 className="font-medium text-lg" >{form.paymentType}</h3></div>
   </div>
 
 
   <div className="text-left">
-    <div className="text-gray-500 text-xs"><h3>Cash Received</h3></div>
-    <div className="font-semibold"><h3>{formatCurrency(form.cashReceived)}</h3></div>
+    <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg">User Type</h3></div>
+    <div className="font-semibold text-base"><h3 className="font-medium text-lg">{form.userType}</h3></div>
   </div>
   <div className="text-right">
-    <div className="text-gray-500 text-xs"><h3>Payment Type</h3></div>
-    <div className="font-semibold"><h4>{form.paymentType}</h4></div>
-  </div>
-
-
-  <div className="text-left">
-    <div className="text-gray-500 text-xs">User Type</div>
-    <div className="font-semibold">{form.userType}</div>
-  </div>
-  <div className="text-right">
-    <div className="text-gray-500 text-xs">Collection Name</div>
-    <div className="font-semibold"><h3>{form.agentName || "-"}</h3></div>
+    <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg">Collection Name</h3></div>
+    <div className="font-semibold text-base"><h3 className="font-medium text-lg">{form.agentName || "-"}</h3></div>
   </div>
 </div>
 
 
               {/* Notes */}
               <div className="mt-4 text-sm">
-                <div className="text-gray-500 text-xs">Notes</div>
-                <div className="font-medium"><h4>{form.notes || "-"}</h4></div>
+                <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg">Notes</h3></div>
+                <div className="font-medium text-base"><h3 className="font-medium text-lg">{form.notes || "-"}</h3></div>
               </div>
 
 
               {/* Signature */}
               <div className="mt-6 grid grid-cols-2 gap-4 items-end">
                 <div className="text-sm">
-                  <div className="text-gray-500 text-xs"><h5>Receiver Signature</h5></div>
+                  <div className="text-gray-500 text-xs"><h5 className="font-medium text-lg">Receiver Signature</h5></div>
                   <div ref={signatureRef} className="mt-6 h-14 border rounded-md flex items-center justify-center text-xs text-gray-400">
-                    <p className="mt-2"><h4>{form.customerName || "-"}</h4></p>
+                    <p className="mt-2 text-base"><h3 className="font-medium text-lg">{form.customerName || "-"}</h3></p>
 </div>
                 </div>
                 <div className="text-sm text-right">
-                  <div className="text-gray-500 text-xs"><h5>For TRS Chit Fund</h5></div>
-                  <p className="mt-1"><h4>{form.agentName || "-"}</h4></p>
-                  <div className="font-medium mt-0"><h5>Authorized Signatory</h5></div>
+                  <div className="text-gray-500 text-lg"><h5 className="font-medium" >For TRS Chit Fund</h5></div>
+                  <p className="mt-1 text-base"><h3 className="font-medium text-lg">{form.agentName || "-"}</h3></p>
+                  <div className="font-medium mt-0"><h5 className="font-medium text-lg">Authorized Signatory</h5></div>
                 </div>
-              </div>
+              </div> 
 {/* 🔹 More Chit Plans Link */}
         <div className="text-center mb-6">
           <a
@@ -521,8 +513,18 @@ async function handleShareWhatsApp() {
     border: none;
     box-shadow: none;
     font-family: 'Arial', 'Helvetica', sans-serif;
-    line-height: 1.0;
+    line-height: 1.2;
+    padding-left: 25%;
+    padding-right: 25%;
+    position: relative;
+
   }
+
+#invoice-preview img {
+  max-height: 8px;  /* ✅ Bigger logo */
+  width: auto;
+  margin-bottom: 6px;
+}
 #invoice-preview h2 {
   font-size: 20px;
   font-weight: 700;
