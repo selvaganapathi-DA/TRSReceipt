@@ -335,7 +335,7 @@ async function handleShareWhatsApp() {
             <div className="bg-white p-1 rounded-lg shadow-sm print:shadow-none">
               {/* Company Header in Invoice */}
               <div className="text-center mb-4">
-                <img src={logo} alt="Company Logo" className="h-24 w-26 mx-auto mb-0" />
+                <img src={logo} alt="Company Logo" className="mx-auto mb-2 w-32 h-32 object-contain" />
                 <h2 className="font-bold text-2xl"><bold>TRS Chit Fund</bold></h2>
                 <p className="text-base text-gray-600"><h4>2B,Chinnasamy Naidu street, Dharmapuri-636701, Tamil Nadu</h4></p>
                 <p className="text-base text-gray-600"><strong><h3>Contact:Ramesh-9444545907 & Siva-7200120078</h3></strong> </p>
@@ -398,26 +398,26 @@ async function handleShareWhatsApp() {
               </div> */}
 <div className="mt-2 grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
   <div className="text-left">
-    <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg" >Name</h3></div>
-    <div className="font-semibold text-base"><h3 className="font-medium text-lg" >{form.customerName || "-"}</h3></div>
+    <div className="text-gray-500 text-xs"><h2 className="font-medium text-lg" >Name</h2></div>
+    <div className="font-bold text-lg"><h2 className="font-medium text-lg" >{form.customerName || "-"}</h2></div>
   </div>
   <div className="text-right">
     <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg" >Chit Month</h3></div>
-    <div className="font-semibold text-base"><h3 className="font-medium text-lg" >{form.chitNumber || "-"}</h3></div>
+    <div className="font-bold text-lg"><h3 className="font-medium text-lg" >{form.chitNumber || "-"}</h3></div>
   </div>
 
   <div className="text-left">
     <div className="text-gray-500 text-xs"><h2 className="font-medium text-lg">Plan</h2></div>
-    <div className="font-semibold text-base"><h2 className="font-medium text-lg">{form.planName || "-"}</h2></div>
+    <div className="font-semibold text-lg"><h2 className="font-medium text-lg">{form.planName || "-"}</h2></div>
   </div>
   <div className="text-right">
     <div className="text-gray-500 text-xs"><h2 className="font-medium text-lg">Plan Amount</h2></div>
-    <div className="font-semibold text-base"><h2 className="font-medium text-lg">{getPlanLabel(form.planAmount)}</h2></div>
+    <div className="font-semibold text-lg"><h2 className="font-medium text-lg">{getPlanLabel(form.planAmount)}</h2></div>
   </div>
 
   <div className="text-left">
     <div className="text-gray-500 text-xs"><h2 className="font-medium text-lg">Cash Received</h2></div>
-    <div className="font-semibold text-base"><h2 className="font-medium text-lg" >{formatCurrency(form.cashReceived)}</h2></div>
+    <div className="font-semibold text-lg"><h2 className="font-medium text-lg" >{formatCurrency(form.cashReceived)}</h2></div>
   </div>
   <div className="text-right">
     <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg" >Payment Type</h3></div>
@@ -431,7 +431,7 @@ async function handleShareWhatsApp() {
   </div>
   <div className="text-right">
     <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg">Collection Name</h3></div>
-    <div className="font-semibold text-base"><h3 className="font-medium text-lg">{form.agentName || "-"}</h3></div>
+    <div className="font-semibold text-lg"><h3 className="font-medium text-lg">{form.agentName || "-"}</h3></div>
   </div>
 </div>
 
@@ -439,7 +439,7 @@ async function handleShareWhatsApp() {
               {/* Notes */}
               <div className="mt-4 text-sm">
                 <div className="text-gray-500 text-xs"><h3 className="font-medium text-lg">Notes</h3></div>
-                <div className="font-medium text-base"><h3 className="font-medium text-lg">{form.notes || "-"}</h3></div>
+                <div className="font-medium text-lg"><h3 className="font-medium text-lg">{form.notes || "-"}</h3></div>
               </div>
 
 
@@ -453,7 +453,7 @@ async function handleShareWhatsApp() {
                 </div>
                 <div className="text-sm text-right">
                   <div className="text-gray-500 text-lg"><h5 className="font-medium" >For TRS Chit Fund</h5></div>
-                  <p className="mt-1 text-base"><h3 className="font-medium text-lg">{form.agentName || "-"}</h3></p>
+                  <p className="mt-1 text-lg"><h3 className="font-medium text-lg">{form.agentName || "-"}</h3></p>
                   <div className="font-medium mt-0"><h5 className="font-medium text-lg">Authorized Signatory</h5></div>
                 </div>
               </div> 
@@ -519,12 +519,12 @@ async function handleShareWhatsApp() {
     position: relative;
 
   }
-
 #invoice-preview img {
-  max-height: 8px;  /* ✅ Bigger logo */
+  max-height: 120px;   /* bigger logo */
   width: auto;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
+
 #invoice-preview h2 {
   font-size: 20px;
   font-weight: 700;
