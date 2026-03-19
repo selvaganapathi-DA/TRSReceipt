@@ -75,7 +75,7 @@ async function generatePDF() {
   const input = invoiceRef.current;
 
   const canvas = await html2canvas(input, {
-    scale: 3,
+    scale: 2,
     useCORS: true
   });
 
@@ -83,29 +83,87 @@ async function generatePDF() {
 
   const pdf = new jsPDF("p", "mm", "a4");
 
-  const pdfWidth = 210;   // A4 width in mm
-  const pdfHeight = 297;  // A4 height in mm
+  const pdfWidth = 210;
+  const pdfHeight = 297;
 
-  const imgWidth = pdfWidth;
+  // margin (for border space)
+  const margin = 10;
+
+  const usableWidth = pdfWidth - margin * 2;
+  const usableHeight = pdfHeight - margin * 2;
+
+  // scale image to fit inside A4
+  const imgWidth = usableWidth;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-  let heightLeft = imgHeight;
-  let position = 0;
+  let finalHeight = imgHeight;
 
-  // First page
-  pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-  heightLeft -= pdfHeight;
-
-  // Extra pages if needed (no cropping)
-  while (heightLeft > 0) {
-    position = heightLeft - imgHeight;
-    pdf.addPage();
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pdfHeight;
+  // 🔥 Prevent overflow → shrink if too big
+  if (imgHeight > usableHeight) {
+    finalHeight = usableHeight;
   }
+
+  // center vertically
+  const yPosition = (pdfHeight - finalHeight) / 2;
+
+  // add image
+  pdf.addImage(
+    imgData,
+    "PNG",
+    margin,
+    yPosition,
+    imgWidth,
+    finalHeight
+  );
+
+  // ✅ Add border
+  pdf.setLineWidth(0.5);
+  pdf.rect(
+    margin / 2,
+    margin / 2,
+    pdfWidth - margin,
+    pdfHeight - margin
+  );
 
   return pdf;
 }
+
+// async function generatePDF() {
+
+//   const input = invoiceRef.current;
+
+//   const canvas = await html2canvas(input, {
+//     scale: 2,
+//     useCORS: true
+//   });
+
+//   const imgData = canvas.toDataURL("image/png");
+
+//   const pdf = new jsPDF("p", "mm", "a4");
+
+//   const pdfWidth = 210;   // A4 width in mm
+//   const pdfHeight = 297;  // A4 height in mm
+
+//   const imgWidth = pdfWidth;
+//   const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+//   let heightLeft = imgHeight;
+//   let position = 0;
+
+//   // First page
+//   pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+//   heightLeft -= pdfHeight;
+
+//   // Extra pages if needed (no cropping)
+//   while (heightLeft > 0) {
+//     position = heightLeft - imgHeight;
+//     pdf.addPage();
+//     pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+//     heightLeft -= pdfHeight;
+//   }
+
+//   return pdf;
+// }
 async function handleDownloadPDF(){
 
 setLoading(true);
@@ -392,7 +450,8 @@ className="bg-white rounded-lg mt-4 p-6 w-full max-w-[794px]"
 <div
   ref={invoiceRef}
   className="bg-white rounded-lg mt-4 p-6 w-full max-w-[794px] mx-auto"
-  style={{ width: "794px", minHeight: "1123px" }}  // A4 ratio
+  style={{ width: "794px", minHeight: "1123px",  padding: "20px",
+    boxSizing: "border-box" }}  // A4 ratio
 >
 {/* Invoice Header */}
 
