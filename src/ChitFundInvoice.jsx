@@ -15,7 +15,7 @@ const [loading,setLoading] = useState(false);
 
 const [form,setForm] = useState({
 customerName:"",
-date:formatDate(new Date()),
+date:formatDateInput(new Date()),
 chitNumber:"",
 planName:"",
 planAmount:"",
@@ -28,24 +28,19 @@ signature:""
 });
 
 // SAFE display format (dd/mm/yyyy)
-function formatDate(dateStr){
-  if(!dateStr) return "-";
+function formatDateInput(date){
+  if(!date) return "";
 
-  // if it's Date object
-  if(dateStr instanceof Date){
-    const d = String(dateStr.getDate()).padStart(2,"0");
-    const m = String(dateStr.getMonth()+1).padStart(2,"0");
-    const y = dateStr.getFullYear();
-    return `${d}/${m}/${y}`;
+  if(date instanceof Date){
+    return date.toISOString().split("T")[0]; // yyyy-mm-dd
   }
 
-  // if it's string yyyy-mm-dd
-  if(typeof dateStr === "string" && dateStr.includes("-")){
-    const [y,m,d] = dateStr.split("-");
-    return `${d}/${m}/${y}`;
+  // already yyyy-mm-dd
+  if(typeof date === "string" && date.includes("-")){
+    return date;
   }
 
-  return "-";
+  return "";
 }
 // function formatDate(dateStr){
 //   if(!dateStr) return "-";
@@ -235,7 +230,7 @@ className="input"
 <input
 name="date"
 type="date"
-value={formatDate(form.date)}
+value={formatDateInput(form.date)}
 onChange={handleChange}
 className="input"
 />
@@ -403,7 +398,7 @@ Payment Receipt
 </h3>
 
 <div className="absolute right-0 top-0 text-sm text-gray-600">
-{formatDate(form.date)}
+<h3 className="font-semibold text-center">{formatDateInput(form.date)}</h3>
 </div>
 
 </div>
