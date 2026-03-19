@@ -393,7 +393,7 @@ className="bg-white rounded-lg mt-4 p-6 w-full max-w-[794px]"
   ref={invoiceRef}
   className="bg-white rounded-lg mt-4 p-6 w-full max-w-[794px] mx-auto"
   style={{ width: "794px", minHeight: "1123px" }}  // A4 ratio
-></div>
+>
 {/* Invoice Header */}
 
 <div className="text-center mb-4">
