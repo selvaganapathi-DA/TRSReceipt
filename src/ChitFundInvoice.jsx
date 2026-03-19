@@ -70,31 +70,42 @@ const plans={
 return plans[val]||"-";
 }
 
-async function generatePDF(){
+async function generatePDF() {
 
-const input=invoiceRef.current;
+  const input = invoiceRef.current;
 
-const canvas=await html2canvas(input,{
-scale:3,
-useCORS:true
-});
+  const canvas = await html2canvas(input, {
+    scale: 3,
+    useCORS: true
+  });
 
-const imgData=canvas.toDataURL("image/png");
+  const imgData = canvas.toDataURL("image/png");
 
-const pdf=new jsPDF("p","pt","a4");
+  const pdf = new jsPDF("p", "mm", "a4");
 
-const pdfWidth=pdf.internal.pageSize.getWidth();
-const imgProps=pdf.getImageProperties(imgData);
+  const pdfWidth = 210;   // A4 width in mm
+  const pdfHeight = 297;  // A4 height in mm
 
-const imgWidth=pdfWidth;
-const imgHeight=(imgProps.height*imgWidth)/imgProps.width;
+  const imgWidth = pdfWidth;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-pdf.addImage(imgData,"PNG",0,0,imgWidth,imgHeight);
+  let heightLeft = imgHeight;
+  let position = 0;
 
-return pdf;
+  // First page
+  pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+  heightLeft -= pdfHeight;
 
+  // Extra pages if needed (no cropping)
+  while (heightLeft > 0) {
+    position = heightLeft - imgHeight;
+    pdf.addPage();
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pdfHeight;
+  }
+
+  return pdf;
 }
-
 async function handleDownloadPDF(){
 
 setLoading(true);
@@ -374,11 +385,15 @@ disabled={loading}
 
 {/* INVOICE PREVIEW */}
 
-<div
+{/* <div
 ref={invoiceRef}
 className="bg-white rounded-lg mt-4 p-6 w-full max-w-[794px]"
->
-
+> */}
+<div
+  ref={invoiceRef}
+  className="bg-white rounded-lg mt-4 p-6 w-full max-w-[794px] mx-auto"
+  style={{ width: "794px", minHeight: "1123px" }}  // A4 ratio
+></div>
 {/* Invoice Header */}
 
 <div className="text-center mb-4">
